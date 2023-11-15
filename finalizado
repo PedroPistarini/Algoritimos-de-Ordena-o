@@ -1,0 +1,359 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+// Definição de uma estrutura chamada "array" contendo apenas um elemento inteiro chamado "chave"
+typedef struct item 
+{
+    float info;
+    int chave;
+} array;
+
+// Função para preencher um array com chaves aleatórias
+void chaves(array *v, int n, int tipo) 
+{
+    if(tipo == 1)
+    {
+        for (int i = 0; i < n; i++) 
+        {
+            v[i].info = rand() + 100;       // Números aleatorio float
+            v[i].chave = rand();            //Chave de Ordenação
+        }
+    }
+
+    if(tipo == 2)
+    {
+        for(int i = 0; i < n; i++)
+        {
+            v[0].chave = rand()%10000;
+            v[i].info = rand() + 100;
+            v[i].chave = v[i - 1].chave + rand() % 10000;
+        }
+    }
+}
+
+// Função para imprimir um array
+void printarray(array *v, int n) 
+{
+
+    printf("\n Info     |     Chave \n\n");
+    for (int i = 0; i < n; i++) 
+    {
+        printf(" %.2f    -   %d\n", v[i].info, v[i].chave);
+    }
+}
+
+// Função para medir o tempo de execução e imprimir em horas, minutos e segundos
+void tempo(double tempo_exec, clock_t begin) 
+{
+    clock_t end = clock();
+    tempo_exec += (double)(end - begin) / CLOCKS_PER_SEC;
+
+    // Converte o tempo total em segundos para horas, minutos e segundos
+    int horas = (int)(tempo_exec / 3600);
+    int minutos = (int)((tempo_exec - horas * 3600) / 60);
+    float segundos = (float)(tempo_exec - horas * 3600 - minutos * 60);
+
+    printf("\nTempo de execucao: %02dh:%02dm:%.3fs\n", horas, minutos, segundos);
+}
+
+// Algoritmo de ordenação: Insertion Sort
+void insertionsort(array *v, int n) 
+{
+    int i, j, temp;
+
+    for (i = 1; i < n; i++) 
+    {
+        for (j = i; j > 0 && v[j - 1].chave < v[j].chave; j--)
+        {
+            temp = v[j - 1].chave;
+            v[j - 1].chave = v[j].chave;
+            v[j].chave = temp;
+        }
+    }
+}
+
+// Algoritmo de ordenação: Bubble Sort
+void bubblesort(array *v, int n) 
+{
+    int i, j, temp;
+
+    for (i = 0; i <= n - 1; i++) 
+    {
+        for (j = 1; j <= n - 1; j++) 
+        {
+            if (v[j].chave > v[j - 1].chave) 
+            {
+                temp = v[j - 1].chave;
+                v[j - 1].chave = v[j].chave;
+                v[j].chave = temp;
+            }
+        }
+    }
+}
+
+// Algoritmo de ordenação: Shell Sort
+void shellsort(array *v, int n) 
+{
+    int i, j, h;
+    array aux;
+
+    for (h = 1; h < n / 3; h = 3 * h + 1);
+
+    while (h > 0) 
+    {
+        h = (h - 1) / 3;
+        for (i = h; i < n; i++) 
+        {
+            aux = v[i];
+            j = i;
+
+            while (j >= h && v[j - h].chave < aux.chave)
+            {
+                v[j] = v[j - h];
+                j -= h;
+                if (j < h) break;
+            }
+            v[j] = aux;
+        }
+    }
+}
+
+// Algoritmo de ordenação: Merge Sort
+void merge(array *v, array *c, int i, int m, int f) 
+{
+    int z, iv = i, ic = m + 1;
+    for (z = i; z <= f; z++)
+    {
+        c[z].chave = v[z].chave;
+    } 
+        
+    z = i;
+
+    while (iv <= m && ic <= f) 
+    {
+        if (c[iv].chave >= c[ic].chave) 
+        {
+            v[z++].chave = c[iv++].chave;
+        } else 
+        {
+            v[z++].chave = c[ic++].chave;
+        }
+    }
+
+    while (iv <= m) 
+    {
+        v[z++].chave = c[iv++].chave;
+    }
+    while (ic <= f)
+    {
+        v[z++].chave = c[ic++].chave;
+    }
+}
+
+void sort(array *v, array *c, int i, int f)
+{
+    if (i < f) 
+    {
+        int m = (i + f) / 2;
+        sort(v, c, i, m);
+        sort(v, c, m + 1, f);
+        if (v[m].chave < v[m + 1].chave) 
+        {
+            merge(v, c, i, m, f);
+        }
+    }
+}
+
+void mergesort(array *v, int n) 
+{
+    array *c = malloc(sizeof(array) * n);
+    sort(v, c, 0, n - 1);
+    free(c);
+}
+
+// Algoritmo de ordenação: Quick Sort
+void quicksort(array *v, int esq, int dir, int n)
+{
+    int pivo = esq, i,ch,j;         
+    for(i=esq+1;i<=dir;i++)
+    {        
+        j = i;                      
+        if(v[j].chave < v[pivo].chave)
+        {     
+            ch = v[j].chave;               
+            while(j > pivo)
+            {           
+                v[j].chave = v[j-1].chave;      
+                j--;                    
+            }
+            v[j].chave = ch;               
+            pivo++;                    
+        }
+    }
+    if(pivo-1 >= esq)
+    {   
+        //printarray(v, n);           
+        quicksort(v,esq,pivo-1, n);      
+    }
+    if(pivo+1 <= dir)
+    {   
+        //printarray(v, n);           
+        quicksort(v,pivo+1,dir, n);      
+    }
+}
+
+void quicksort_dir(array *v, int esq, int dir, int n) 
+{
+    if (esq < dir) {
+        int pivo = dir;  // Pivô escolhido como o último elemento à direita
+        int i = esq - 1;
+        int ch, j;
+
+        //printf("\nPivoh escolhido: indice %d, Valor %d\n", pivo, v[pivo].chave);
+
+        for (j = esq; j < dir; j++) {
+            if (v[j].chave >= v[pivo].chave) {
+                i++;
+                // Troca v[i] e v[j]
+                ch = v[i].chave;
+                v[i].chave = v[j].chave;
+                v[j].chave = ch;
+            }
+        }
+
+        // Troca v[i+1] e v[pivo]
+        ch = v[i + 1].chave;
+        v[i + 1].chave = v[pivo].chave;
+        v[pivo].chave = ch;
+
+        int p = i + 1;
+
+        //printf("Array apos o particionamento:");
+        //printarray(v, n);
+
+        if (p - 1 >= esq) {
+            //printf("\nChamando quicksort_dir para a subarvore esquerda:\n");
+            quicksort_dir(v, esq, p - 1, n);
+        }
+
+        if (p + 1 <= dir) {
+            //printf("\nChamando quicksort_dir para a subarvore direita:\n");
+            quicksort_dir(v, p + 1, dir, n);
+        }
+    }
+}
+
+void quicksort_meio(array *v, int esq, int dir, int n) {
+    
+    int temp;
+
+    if (esq < dir) {
+        int meio = (esq + dir) / 2;
+        int pivo = v[meio].chave;
+
+        printf("\nPivo escolhido: Índice %d, Valor %d\n", meio, pivo);
+
+        // Coloca o pivô no final
+        temp = v[meio].chave;
+        v[meio].chave = v[dir].chave;
+        v[dir].chave = temp;
+
+        int i = esq - 1;
+        for (int j = esq; j < dir; j++) {
+            if (v[j].chave >= pivo) {
+                i++;
+
+                // Troca v[i] e v[j]
+                int temp = v[i].chave;
+                v[i].chave = v[j].chave;
+                v[j].chave = temp;
+            }
+        }
+
+        // Coloca o pivô de volta à sua posição correta
+        temp = v[i + 1].chave;
+        v[i + 1].chave = v[dir].chave;
+        v[dir].chave = temp;
+
+        int p = i + 1;
+
+        //printf("Array após o particionamento:");
+        //printarray(v, dir - esq + 1);
+
+        if (p - 1 >= esq) {
+            //printf("\nChamando quicksort_meio para a subárvore esquerda:\n");
+            quicksort_meio(v, esq, p - 1, n);
+        }
+
+        if (p + 1 <= dir) {
+            //printf("\nChamando quicksort_meio para a subárvore direita:\n");
+            quicksort_meio(v, p + 1, dir, n);
+        }
+    }
+}
+
+// Algoritmo de ordenação: Counting Sort
+void countingSort(array *v, int n) {
+    int max = v[0].chave;
+    for (int i = 1; i < n; i++) {
+        if (v[i].chave > max) {
+            max = v[i].chave;
+        }
+    }
+
+    max++;
+
+    int count[max];
+
+    // Inicialização do array de contagem
+    for (int i = 0; i < max; i++) {
+        count[i] = 0;
+    }
+
+    // Contagem da ocorrência de cada elemento
+    for (int i = 0; i < n; i++) {
+        count[v[i].chave]++;
+    }
+
+    // Atualização do array de contagem para ordem decrescente
+    for (int i = max - 1, j = 0; i >= 0; i--) {
+        while ((count[i]--) > 0) {
+            v[j++].chave = i;
+        }
+    }
+}
+
+int main() {
+
+    int tipo = 1;                               // Tipo de chave a ser inserida
+    int n = 10;                                 // Número de elementos que deseja que o programa rode
+    int seed = 22000341;                        // Selecionando a seed, para que todos os valores rodados sejam os mesmos
+    array *v = malloc(sizeof(array) * n);
+
+    srand(seed);
+    printf(" Valor da seed executada eh: %d\n ", seed);
+
+    chaves(v, n, tipo);
+    printarray(v, n);
+
+    printf("\n\n NA ORDEM \n\n");
+
+    double tempo_exec = 0.0;
+    clock_t begin = clock();
+
+    // Chame a função de ordenação desejada aqui (descomente a linha correspondente)
+    // insertionsort(v, n);
+    // bubblesort(v, n);
+    // shellsort(v, n);
+    // mergesort(v, n);
+    // quicksort(v, 0, n-1, n);
+    // quicksort_dir(v, 0, n - 1, n);
+    // quicksort_meio(v, 0, n - 1, n);
+    // countingSort(v, n);
+
+    printarray(v, n);
+    tempo(tempo_exec, begin);
+
+    return 0;
+}
